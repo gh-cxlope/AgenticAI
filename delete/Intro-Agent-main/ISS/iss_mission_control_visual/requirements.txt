@@ -1,0 +1,5 @@
+flask
+openai-agents
+python-dotenv
+requests
+gunicorn

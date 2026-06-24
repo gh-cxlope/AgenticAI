@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kid Space Agent</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="side-panel" aria-label="Space agent">
+        <div class="orbital-ring"></div>
+        <img class="mascot" src="/static/assets/kawaii-space-mascot.png" alt="Kawaii space mascot" />
+        <div class="agent-card">
+          <p class="eyebrow">Kid Space Agent</p>
+          <h1>Starry chat, ready for launch</h1>
+          <div class="status-pill" id="connectionStatus">
+            <span class="pulse"></span>
+            Ready
+          </div>
+        </div>
+      </section>
+
+      <section class="chat-panel" aria-label="Chat">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">Mission channel</p>
+            <h2>Ask about space</h2>
+          </div>
+          <a class="trace-link" id="traceLink" href="#" target="_blank" rel="noreferrer">Trace</a>
+        </header>
+
+        <div class="suggestions" aria-label="Prompt suggestions">
+          <button type="button" data-prompt="Where is the ISS right now?">ISS location</button>
+          <button type="button" data-prompt="Show me NASA Earthdata keywords for rain">Earthdata keywords</button>
+          <button type="button" data-prompt="Tell me what's new with NASA">NASA news</button>
+        </div>
+
+        <div class="messages" id="messages" aria-live="polite">
+          <article class="message agent">
+            <div class="avatar">★</div>
+            <div class="bubble">
+              Hi, space explorer. Ask me something about NASA, Earthdata, planets, rockets, or the ISS.
+            </div>
+          </article>
+        </div>
+
+        <form class="composer" id="chatForm">
+          <input
+            id="messageInput"
+            name="message"
+            type="text"
+            autocomplete="off"
+            placeholder="Ask a space question..."
+            aria-label="Message"
+          />
+          <button type="submit" aria-label="Send">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3.4 20.4 21 12 3.4 3.6l2.1 6.3L14 12l-8.5 2.1-2.1 6.3Z" />
+            </svg>
+          </button>
+        </form>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

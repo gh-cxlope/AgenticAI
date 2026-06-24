@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ISS Mission Control</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101114;
+      --panel: #1b1d21;
+      --panel-strong: #23272c;
+      --line: #383f47;
+      --text: #f5f1e8;
+      --muted: #aaa49a;
+      --teal: #4bd7c0;
+      --gold: #f4bf58;
+      --coral: #f47566;
+      --green: #82dc8f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #101114 0%, #181613 48%, #171a18 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      background: var(--teal);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #071311;
+      cursor: pointer;
+      font-weight: 800;
+      min-height: 2.9rem;
+      padding: 0.75rem 1rem;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+    }
+
+    button.toolToggle {
+      align-items: center;
+      background: var(--panel-strong);
+      color: var(--text);
+      display: inline-flex;
+      gap: 0.55rem;
+      justify-content: center;
+      min-width: 11rem;
+    }
+
+    button.toolToggle.active {
+      background: rgba(75, 215, 192, 0.16);
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.62;
+    }
+
+    .shell {
+      display: grid;
+      gap: 1.2rem;
+      margin: 0 auto;
+      max-width: 1240px;
+      min-height: 100vh;
+      padding: 2rem;
+      place-content: center;
+    }
+
+    .topbar {
+      align-items: end;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+
+    .eyebrow,
+    .kicker,
+    label,
+    .answer span {
+      color: var(--muted);
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .eyebrow,
+    .kicker {
+      color: var(--gold);
+      margin: 0 0 0.5rem;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2.7rem, 8vw, 6rem);
+      line-height: 0.95;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+    }
+
+    .status {
+      align-items: center;
+      background: rgba(27, 29, 33, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex;
+      gap: 0.7rem;
+      min-width: 16rem;
+      padding: 0.9rem 1rem;
+    }
+
+    .dot {
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 18px rgba(130, 220, 143, 0.58);
+      display: block;
+      height: 0.72rem;
+      width: 0.72rem;
+    }
+
+    .dot.error {
+      background: var(--coral);
+      box-shadow: 0 0 18px rgba(244, 117, 102, 0.58);
+    }
+
+    .panel {
+      background: rgba(27, 29, 33, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .workbench {
+      align-items: start;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr);
+    }
+
+    .panelHeader {
+      align-items: start;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    form {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .toolRow {
+      align-items: center;
+      background: #15171b;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex;
+      gap: 0.9rem;
+      justify-content: space-between;
+      padding: 0.85rem;
+    }
+
+    .toolRow strong {
+      display: block;
+      font-size: 0.98rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .toolRow p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    textarea {
+      background: #111315;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 8.5rem;
+      padding: 0.9rem;
+      resize: vertical;
+      width: 100%;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .actions button {
+      flex: 1;
+    }
+
+    .answer,
+    .empty,
+    .errorBox {
+      border-radius: 8px;
+      margin-top: 1rem;
+      padding: 1rem;
+    }
+
+    .answer {
+      background: #211f19;
+      border: 1px solid rgba(244, 191, 88, 0.34);
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .answer span {
+      margin-top: 0.85rem;
+    }
+
+    .visualization {
+      background: #15171b;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: none;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+
+    .visualizationHeader {
+      align-items: baseline;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      padding: 0.9rem 1rem;
+    }
+
+    .visualizationHeader strong {
+      display: block;
+    }
+
+    .visualizationHeader span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .visualization iframe {
+      border: 0;
+      display: block;
+      height: 22rem;
+      width: 100%;
+    }
+
+    .empty {
+      background: #15171b;
+      border: 1px dashed var(--line);
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .errorBox {
+      background: rgba(244, 117, 102, 0.14);
+      border: 1px solid rgba(244, 117, 102, 0.4);
+      color: #ffd8d4;
+      line-height: 1.5;
+    }
+
+    .activity {
+      display: grid;
+      gap: 0.7rem;
+    }
+
+    .log {
+      display: grid;
+      gap: 0.6rem;
+      max-height: 36rem;
+      overflow: auto;
+      padding-right: 0.15rem;
+    }
+
+    .logItem {
+      background: #15171b;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      line-height: 1.45;
+      padding: 0.75rem;
+    }
+
+    .logItem strong {
+      color: var(--text);
+      display: block;
+      font-size: 0.84rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .logItem.active {
+      border-color: rgba(75, 215, 192, 0.6);
+      color: var(--text);
+    }
+
+    .logItem.done {
+      border-color: rgba(130, 220, 143, 0.48);
+    }
+
+    .logItem.error {
+      border-color: rgba(244, 117, 102, 0.58);
+      color: #ffd8d4;
+    }
+
+    @media (max-width: 880px) {
+      .shell {
+        padding: 1rem;
+      }
+
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .status {
+        min-width: 0;
+      }
+
+      .workbench {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div>
+        <p class="eyebrow">Local production agent</p>
+        <h1>ISS Mission Control</h1>
+      </div>
+      <div class="status">
+        <span id="statusDot" class="dot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </section>
+
+    <section class="workbench">
+      <div class="panel">
+        <div class="panelHeader">
+          <div>
+            <p class="kicker">Agent</p>
+            <h2>Mission Update</h2>
+          </div>
+        </div>
+
+        <form id="agentForm">
+          <label for="task">Task</label>
+          <textarea id="task">{{ default_task }}</textarea>
+          <div class="toolRow">
+            <div>
+              <strong>ISS location tool</strong>
+              <p id="toolDescription">The agent can call live ISS location data before answering.</p>
+            </div>
+            <button class="toolToggle active" type="button" id="toolToggle">Tool on</button>
+          </div>
+          <div class="actions">
+            <button type="submit" id="runButton">Run agent</button>
+            <button class="secondary" type="button" id="resetButton">Reset</button>
+          </div>
+        </form>
+
+        <div id="answer" class="empty">
+          Run the production agent to generate a mission-control update.
+        </div>
+        <div id="visualization" class="visualization">
+          <div class="visualizationHeader">
+            <strong id="visualizationTitle">Current ISS position</strong>
+            <span id="visualizationMeta"></span>
+          </div>
+          <iframe id="visualizationMap" title="ISS position map" loading="lazy"></iframe>
+        </div>
+      </div>
+
+      <aside class="panel activity">
+        <div class="panelHeader">
+          <div>
+            <p class="kicker">Live Trace</p>
+            <h2>Agent Activity</h2>
+          </div>
+        </div>
+        <div id="activityLog" class="log">
+          <div class="logItem">
+            <strong>Idle</strong>
+            Run the agent to see model and tool activity.
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div id="errorBox" class="errorBox" style="display: none;"></div>
+  </main>
+
+  <script>
+    const defaultTask = {{ default_task | tojson }};
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const errorBox = document.getElementById("errorBox");
+    const answer = document.getElementById("answer");
+    const task = document.getElementById("task");
+    const runButton = document.getElementById("runButton");
+    const toolToggle = document.getElementById("toolToggle");
+    const toolDescription = document.getElementById("toolDescription");
+    const visualization = document.getElementById("visualization");
+    const visualizationTitle = document.getElementById("visualizationTitle");
+    const visualizationMeta = document.getElementById("visualizationMeta");
+    const visualizationMap = document.getElementById("visualizationMap");
+    const activityLog = document.getElementById("activityLog");
+    let toolsEnabled = true;
+
+    function setStatus(text, isError = false) {
+      statusText.textContent = text;
+      statusDot.classList.toggle("error", isError);
+    }
+
+    function setError(message) {
+      if (!message) {
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
+        return;
+      }
+      errorBox.style.display = "block";
+      errorBox.textContent = message;
+    }
+
+    function renderToolToggle() {
+      toolToggle.classList.toggle("active", toolsEnabled);
+      toolToggle.textContent = toolsEnabled ? "Tool on" : "Tool off";
+      toolDescription.textContent = toolsEnabled
+        ? "The agent can call live ISS data and create a map visualization."
+        : "The agent has to answer without live ISS tools.";
+    }
+
+    function clearVisualization() {
+      visualization.style.display = "none";
+      visualizationTitle.textContent = "Current ISS position";
+      visualizationMeta.textContent = "";
+      visualizationMap.removeAttribute("src");
+    }
+
+    function renderVisualization(items) {
+      const item = Array.isArray(items) && items.length ? items[items.length - 1] : null;
+      if (!item || !item.map_url) {
+        clearVisualization();
+        return;
+      }
+
+      visualization.style.display = "block";
+      visualizationTitle.textContent = item.title || "Current ISS position";
+      visualizationMeta.textContent = `${item.place_name} | ${item.latitude}, ${item.longitude}`;
+      visualizationMap.src = item.map_url;
+    }
+
+    function resetActivityLog() {
+      activityLog.innerHTML = "";
+    }
+
+    function addActivity(title, message, state = "") {
+      const item = document.createElement("div");
+      item.className = `logItem ${state}`.trim();
+      const heading = document.createElement("strong");
+      heading.textContent = title;
+      item.appendChild(heading);
+      item.append(document.createTextNode(message));
+      activityLog.appendChild(item);
+      activityLog.scrollTop = activityLog.scrollHeight;
+    }
+
+    function handleRunEvent(event) {
+      if (event.type === "run_start") {
+        addActivity("Run started", event.message, "active");
+      } else if (event.type === "model_start") {
+        addActivity("Model", event.message, "active");
+      } else if (event.type === "tool_start") {
+        addActivity("Tool call", event.message, "active");
+      } else if (event.type === "tool_done") {
+        addActivity("Tool complete", event.message, "done");
+      } else if (event.type === "run_done") {
+        addActivity("Done", event.message, "done");
+        renderAgentResult(event.result);
+      } else if (event.type === "error") {
+        addActivity("Error", event.message, "error");
+        throw new Error(event.message);
+      }
+    }
+
+    function renderAgentResult(data) {
+      answer.className = "answer";
+      answer.textContent = data.answer;
+      const modelLabel = document.createElement("span");
+      const toolsLabel = data.used_tools.length
+        ? `used: ${data.used_tools.join(", ")}`
+        : "used: none";
+      modelLabel.textContent = `${data.model} | ${toolsLabel}`;
+      answer.appendChild(modelLabel);
+      renderVisualization(data.visualizations);
+    }
+
+    async function runAgent(event) {
+      event.preventDefault();
+      setError("");
+      setStatus(toolsEnabled ? "Running agent with tool..." : "Running agent without tool...");
+      runButton.disabled = true;
+      toolToggle.disabled = true;
+      answer.className = "empty";
+      answer.textContent = "Waiting for agent output...";
+      clearVisualization();
+      resetActivityLog();
+
+      try {
+        const response = await fetch("/api/run_events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            task: task.value,
+            tools_enabled: toolsEnabled,
+          }),
+        });
+        if (!response.ok || !response.body) {
+          throw new Error("Agent run failed.");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let streamDone = false;
+
+        while (!streamDone) {
+          const chunk = await reader.read();
+          streamDone = chunk.done;
+          buffer += decoder.decode(chunk.value || new Uint8Array(), { stream: !streamDone });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            const event = JSON.parse(line);
+            if (event.type !== "stream_end") {
+              handleRunEvent(event);
+            }
+          }
+        }
+
+        setStatus("Mission update complete.");
+      } catch (error) {
+        setStatus("Agent run failed.", true);
+        answer.className = "empty";
+        answer.textContent = "No mission update generated.";
+        setError(error instanceof Error ? error.message : "Agent run failed.");
+      } finally {
+        runButton.disabled = false;
+        toolToggle.disabled = false;
+      }
+    }
+
+    document.getElementById("agentForm").addEventListener("submit", runAgent);
+    toolToggle.addEventListener("click", () => {
+      toolsEnabled = !toolsEnabled;
+      renderToolToggle();
+      setStatus(toolsEnabled ? "Tool enabled" : "Tool disabled");
+    });
+
+    document.getElementById("resetButton").addEventListener("click", () => {
+      task.value = defaultTask;
+      toolsEnabled = true;
+      renderToolToggle();
+      clearVisualization();
+      activityLog.innerHTML = `
+        <div class="logItem">
+          <strong>Idle</strong>
+          Run the agent to see model and tool activity.
+        </div>
+      `;
+      answer.className = "empty";
+      answer.textContent = "Run the production agent to generate a mission-control update.";
+      setError("");
+      setStatus("Ready");
+    });
+
+    renderToolToggle();
+  </script>
+</body>
+</html>
