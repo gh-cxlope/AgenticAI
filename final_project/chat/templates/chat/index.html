@@ -1,0 +1,392 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>California Native Plant Assistant</title>
+  <link rel="stylesheet" href="{% static 'chat/style.css' %}">
+</head>
+<body>
+  <section class="hero" style="background-image: url('{% static 'landscaper/images/plants_image.jpg' %}');">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="eyebrow">California Native Landscaping</p>
+      <h1>Plant Assistant</h1>
+      <p class="hero-text">
+        Discover native plants, plan your garden, and tap a pollinator card below
+        for a quick fun fact from the web.
+      </p>
+      <button type="button" id="how-it-works-btn" class="how-it-works-btn">
+        How it works
+      </button>
+    </div>
+  </section>
+
+  <main class="container">
+    <section class="pollinator-gallery" aria-label="Pollinator fun fact cards">
+      <header class="gallery-header">
+        <h2>Pollinator Fun Facts</h2>
+        <p>Click a card to get a one-sentence surprise about bees, hummingbirds, or butterflies.</p>
+      </header>
+
+      <div class="pollinator-gallery-grid">
+        <article class="pollinator-card fun-fact-card">
+          <img src="{% static 'landscaper/images/bee.jpeg' %}" alt="Bee pollinating a flower">
+          <div class="pollinator-card-body">
+            <p class="card-tag">Fun fact</p>
+            <h3>Bee Trivia</h3>
+            <p>Learn something surprising about bees and California native plants.</p>
+            <button
+              type="button"
+              class="example-btn fun-fact-btn"
+              data-agent="fun_fact"
+              data-question="Tell me a fun fact about bees and California native plants"
+            >
+              Get a bee fun fact
+            </button>
+          </div>
+        </article>
+
+        <article class="pollinator-card fun-fact-card">
+          <img src="{% static 'landscaper/images/humminbird.jpeg' %}" alt="Hummingbird feeding on a flower">
+          <div class="pollinator-card-body">
+            <p class="card-tag">Fun fact</p>
+            <h3>Hummingbird Trivia</h3>
+            <p>Discover a quick, playful fact about hummingbirds and native flowers.</p>
+            <button
+              type="button"
+              class="example-btn fun-fact-btn"
+              data-agent="fun_fact"
+              data-question="Tell me a fun fact about hummingbirds and California native plants"
+            >
+              Get a hummingbird fun fact
+            </button>
+          </div>
+        </article>
+
+        <article class="pollinator-card fun-fact-card">
+          <img src="{% static 'landscaper/images/monarch.jpeg' %}" alt="Monarch butterfly on flowers">
+          <div class="pollinator-card-body">
+            <p class="card-tag">Fun fact</p>
+            <h3>Butterfly Trivia</h3>
+            <p>Tap for a one-line fun fact about butterflies, monarchs, and native plants.</p>
+            <button
+              type="button"
+              class="example-btn fun-fact-btn"
+              data-agent="fun_fact"
+              data-question="Tell me a fun fact about butterflies and California native plants"
+            >
+              Get a butterfly fun fact
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="chat-panel">
+      <header class="chat-header">
+        <h2>Ask the Assistant</h2>
+        <p>
+          Type your own question below. The app routes it to the plant expert,
+          pollinator expert, fun fact agent, or both.
+        </p>
+      </header>
+
+      <section class="quick-prompts">
+        <button type="button" class="example-btn example-btn-small" data-question="What is the height and spread of Arctostaphylos manzanita?">
+          Manzanita size
+        </button>
+        <button type="button" class="example-btn example-btn-small" data-question="Recommend a low-water native groundcover">
+          Low-water groundcover
+        </button>
+        <button type="button" class="example-btn example-btn-small" data-question="What plants attract monarch butterflies?">
+          Monarch plant ideas
+        </button>
+      </section>
+
+      <section id="chat-log" class="chat-log" aria-live="polite">
+        <article class="message message-assistant welcome-message">
+          <div class="message-label">Assistant</div>
+          <div class="message-body">
+            Welcome. Ask about California native plants, pollinator-friendly options, or click a fun fact card above for a quick trivia answer.
+          </div>
+        </article>
+      </section>
+
+      <form id="chat-form" class="chat-form">
+        {% csrf_token %}
+        <label for="question" class="sr-only">Your question</label>
+        <textarea
+          id="question"
+          name="question"
+          rows="3"
+          placeholder="Ask a question about California native plants..."
+          required
+        ></textarea>
+        <button type="submit" id="submit-btn">Send</button>
+      </form>
+
+      <p id="status" class="status" role="status"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Powered by California native plant and pollinator data.</p>
+  </footer>
+
+  <div id="presentation-modal" class="presentation-modal" hidden aria-hidden="true">
+    <div class="presentation-backdrop" data-close-presentation></div>
+    <div
+      class="presentation-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="presentation-title"
+    >
+      <button type="button" class="presentation-close" aria-label="Close presentation" data-close-presentation>
+        &times;
+      </button>
+
+      <div class="presentation-slides">
+        <article class="presentation-slide is-active" data-slide="0">
+          <p class="slide-eyebrow">Slide 1 of 3</p>
+          <h2 id="presentation-title">What happens when you ask a question</h2>
+          <p class="slide-lead">
+            This app uses a multi-agent system built on top of California native plant knowledge.
+          </p>
+          <ol class="slide-list">
+            <li>You ask a question in the chat or click a pollinator fun-fact card.</li>
+            <li>An orchestrator reads your question and chooses the best expert agent.</li>
+            <li>That agent uses either RAG over CSV data or web search, then GPT writes the answer.</li>
+            <li>The response appears in the chat, labeled with the route that was used.</li>
+          </ol>
+        </article>
+
+        <article class="presentation-slide" data-slide="1">
+          <p class="slide-eyebrow">Slide 2 of 3</p>
+          <h2>The four expert agents</h2>
+          <div class="agent-grid">
+            <section class="agent-card">
+              <h3>Plant retriever</h3>
+              <p class="agent-role">Landscaping &amp; plant traits</p>
+              <p>Prompt focus: answer only from retrieved plant records; include scientific and common names, height, and spread; stay practical and concise.</p>
+            </section>
+            <section class="agent-card">
+              <h3>Pollinator expert</h3>
+              <p class="agent-role">Wildlife &amp; pollinator support</p>
+              <p>Prompt focus: answer only from pollinator CSV data; mention bees, butterflies, hummingbirds, or monarchs; recommend plants by pollinator value.</p>
+            </section>
+            <section class="agent-card">
+              <h3>Fun fact agent</h3>
+              <p class="agent-role">One-sentence trivia</p>
+              <p>Prompt focus: use DuckDuckGo web search, then return exactly one playful, surprising sentence about plants or pollinators.</p>
+            </section>
+            <section class="agent-card">
+              <h3>Both + synthesizer</h3>
+              <p class="agent-role">Combined answer</p>
+              <p>When a question needs plant details and pollinator info, both RAG agents run and a synthesizer merges their answers into one response.</p>
+            </section>
+          </div>
+        </article>
+
+        <article class="presentation-slide" data-slide="2">
+          <p class="slide-eyebrow">Slide 3 of 3</p>
+          <h2>RAG datasets &amp; orchestration</h2>
+          <div class="dataset-grid">
+            <section class="dataset-card">
+              <h3>plants.csv</h3>
+              <p>463 California native plant records with scientific name, common name, height, spread, and description.</p>
+              <p class="dataset-meta">Stored in Chroma at <code>chroma_data/plants_csv</code></p>
+            </section>
+            <section class="dataset-card">
+              <h3>Polinators_1.csv + polinators_2.csv</h3>
+              <p>205 pollinator-friendly plant records with pollinator types, plant type, height, and width.</p>
+              <p class="dataset-meta">Stored in Chroma at <code>chroma_data/pollinators_csv</code></p>
+            </section>
+          </div>
+          <div class="flow-box">
+            <p><strong>Router prompt</strong> picks one route: <code>plant</code>, <code>pollinator</code>, <code>fun_fact</code>, or <code>both</code>.</p>
+            <p>Fun-fact cards bypass the router and call the fun fact agent directly.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="presentation-controls">
+        <button type="button" id="presentation-prev" class="presentation-nav" disabled>Previous</button>
+        <div class="presentation-dots" aria-label="Slide navigation">
+          <button type="button" class="presentation-dot is-active" data-go-to="0" aria-label="Slide 1"></button>
+          <button type="button" class="presentation-dot" data-go-to="1" aria-label="Slide 2"></button>
+          <button type="button" class="presentation-dot" data-go-to="2" aria-label="Slide 3"></button>
+        </div>
+        <button type="button" id="presentation-next" class="presentation-nav">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatLog = document.getElementById("chat-log");
+    const chatForm = document.getElementById("chat-form");
+    const questionInput = document.getElementById("question");
+    const submitBtn = document.getElementById("submit-btn");
+    const statusEl = document.getElementById("status");
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    function addMessage(role, text, route = "") {
+      const message = document.createElement("article");
+      message.className = `message message-${role}`;
+
+      const label = document.createElement("div");
+      label.className = "message-label";
+      if (role === "assistant" && route) {
+        label.textContent = route === "fun_fact"
+          ? "Assistant · fun fact"
+          : `Assistant · routed to ${route}`;
+      } else {
+        label.textContent = role === "user" ? "You" : "Assistant";
+      }
+
+      const body = document.createElement("div");
+      body.className = "message-body";
+      body.textContent = text;
+
+      message.appendChild(label);
+      message.appendChild(body);
+      chatLog.appendChild(message);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    async function sendQuestion(question, agent = null) {
+      statusEl.textContent = agent === "fun_fact" ? "Finding a fun fact..." : "Thinking...";
+      submitBtn.disabled = true;
+
+      const payload = { question };
+      if (agent) {
+        payload.agent = agent;
+      }
+
+      try {
+        const response = await fetch("{% url 'chat_api' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Request failed.");
+        }
+
+        addMessage("assistant", data.answer, data.route);
+        statusEl.textContent = "";
+      } catch (error) {
+        statusEl.textContent = error.message;
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = questionInput.value.trim();
+      if (!question) return;
+
+      addMessage("user", question);
+      questionInput.value = "";
+      await sendQuestion(question);
+    });
+
+    const chatPanel = document.querySelector(".chat-panel");
+
+    document.querySelectorAll(".fun-fact-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const question = button.dataset.question;
+        addMessage("user", question);
+        chatPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        await sendQuestion(question, button.dataset.agent);
+      });
+    });
+
+    document.querySelectorAll(".example-btn:not(.fun-fact-btn)").forEach((button) => {
+      button.addEventListener("click", () => {
+        questionInput.value = button.dataset.question;
+        questionInput.focus();
+        questionInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+
+    const presentationModal = document.getElementById("presentation-modal");
+    const presentationSlides = Array.from(document.querySelectorAll(".presentation-slide"));
+    const presentationDots = Array.from(document.querySelectorAll(".presentation-dot"));
+    const presentationPrev = document.getElementById("presentation-prev");
+    const presentationNext = document.getElementById("presentation-next");
+    let currentSlide = 0;
+
+    function showSlide(index) {
+      currentSlide = index;
+      presentationSlides.forEach((slide, slideIndex) => {
+        slide.classList.toggle("is-active", slideIndex === index);
+      });
+      presentationDots.forEach((dot, dotIndex) => {
+        dot.classList.toggle("is-active", dotIndex === index);
+      });
+      presentationPrev.disabled = index === 0;
+      presentationNext.textContent = index === presentationSlides.length - 1 ? "Close" : "Next";
+    }
+
+    function openPresentation() {
+      presentationModal.hidden = false;
+      presentationModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("presentation-open");
+      showSlide(0);
+    }
+
+    function closePresentation() {
+      presentationModal.hidden = true;
+      presentationModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("presentation-open");
+    }
+
+    document.getElementById("how-it-works-btn").addEventListener("click", openPresentation);
+
+    presentationPrev.addEventListener("click", () => {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    });
+
+    presentationNext.addEventListener("click", () => {
+      if (currentSlide < presentationSlides.length - 1) {
+        showSlide(currentSlide + 1);
+      } else {
+        closePresentation();
+      }
+    });
+
+    presentationDots.forEach((dot) => {
+      dot.addEventListener("click", () => showSlide(Number(dot.dataset.goTo)));
+    });
+
+    document.querySelectorAll("[data-close-presentation]").forEach((element) => {
+      element.addEventListener("click", closePresentation);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (presentationModal.hidden) return;
+      if (event.key === "Escape") closePresentation();
+      if (event.key === "ArrowRight" && currentSlide < presentationSlides.length - 1) {
+        showSlide(currentSlide + 1);
+      }
+      if (event.key === "ArrowLeft" && currentSlide > 0) {
+        showSlide(currentSlide - 1);
+      }
+    });
+  </script>
+</body>
+</html>
