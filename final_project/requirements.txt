@@ -1,8 +1,8 @@
-# Data preparation
+# Data preparation scripts (data_prep/, export_descriptions.py)
 pypdf>=5.0.0
 numbers-parser>=4.0.0
 
-# CaliforniaNativeLandscaper_Agent.py (chatbot)
+# CaliforniaNativeLandscaper_Agent.py (multi-agent chatbot)
 python-dotenv>=1.0.0
 langchain>=0.3.0
 langchain-core>=0.3.0
@@ -12,5 +12,6 @@ openai>=2.0.0
 chromadb>=0.5.0
 protobuf>=4.21,<6
 
-# Django web app
+# Django web app (chat/)
 django>=5.0.0
+gunicorn>=22.0.0
