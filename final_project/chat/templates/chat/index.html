@@ -128,6 +128,14 @@
       </form>
 
       <p id="status" class="status" role="status"></p>
+
+      <section id="trace-panel" class="trace-panel" hidden aria-live="polite">
+        <div class="trace-panel-header">
+          <span class="trace-spinner" aria-hidden="true"></span>
+          <strong id="trace-title">Working in the background</strong>
+        </div>
+        <ol id="trace-list" class="trace-list"></ol>
+      </section>
     </section>
   </main>
 
@@ -149,48 +157,66 @@
 
       <div class="presentation-slides">
         <article class="presentation-slide is-active" data-slide="0">
-          <p class="slide-eyebrow">Slide 1 of 3</p>
+          <p class="slide-eyebrow">Slide 1 of 5</p>
           <h2 id="presentation-title">What happens when you ask a question</h2>
           <p class="slide-lead">
-            This app uses a multi-agent system built on top of California native plant knowledge.
+            Every request goes through a multi-agent pipeline — with guardrails up front and visible progress while it runs.
           </p>
           <ol class="slide-list">
-            <li>You ask a question in the chat or click a pollinator fun-fact card.</li>
-            <li>An orchestrator reads your question and chooses the best expert agent.</li>
-            <li>That agent uses either RAG over CSV data or web search, then GPT writes the answer.</li>
-            <li>The response appears in the chat, labeled with the route that was used.</li>
+            <li>You ask in the chat or click a pollinator fun-fact card.</li>
+            <li>A guardrail check confirms the question is about California native plants or pollinators.</li>
+            <li>The orchestrator routes to the plant expert, pollinator expert, web fun fact agent, or both.</li>
+            <li>Plant and pollinator experts use RAG over CSV data; the fun fact agent searches the live web with OpenAI's <code>web_search</code> tool.</li>
+            <li>While agents work, a <strong>Working in the background</strong> panel shows live progress.</li>
+            <li>The answer appears in chat with its route label and a collapsible <strong>Background steps</strong> trace.</li>
           </ol>
         </article>
 
         <article class="presentation-slide" data-slide="1">
-          <p class="slide-eyebrow">Slide 2 of 3</p>
+          <p class="slide-eyebrow">Slide 2 of 5</p>
           <h2>The four expert agents</h2>
+          <p class="slide-lead">
+            All agents share the same guardrails and a warm, garden-buddy tone — factual, friendly, and lightly playful.
+          </p>
           <div class="agent-grid">
             <section class="agent-card">
               <h3>Plant retriever</h3>
               <p class="agent-role">Landscaping &amp; plant traits</p>
-              <p>Prompt focus: answer only from retrieved plant records; include scientific and common names, height, and spread; stay practical and concise.</p>
+              <p>RAG over <code>plants.csv</code>. Answers only from retrieved records; includes scientific and common names, height, and spread.</p>
             </section>
             <section class="agent-card">
               <h3>Pollinator expert</h3>
               <p class="agent-role">Wildlife &amp; pollinator support</p>
-              <p>Prompt focus: answer only from pollinator CSV data; mention bees, butterflies, hummingbirds, or monarchs; recommend plants by pollinator value.</p>
+              <p>RAG over pollinator CSVs. Recommends plants by pollinator value — bees, butterflies, hummingbirds, monarchs.</p>
             </section>
             <section class="agent-card">
               <h3>Fun fact agent</h3>
-              <p class="agent-role">One-sentence trivia</p>
-              <p>Prompt focus: use DuckDuckGo web search, then return exactly one playful, surprising sentence about plants or pollinators.</p>
+              <p class="agent-role">OpenAI web_search · one sentence</p>
+              <p>The only agent that skips RAG and Chroma. It calls the OpenAI Responses API with the hosted <code>web_search</code> tool — search and answer in one step.</p>
             </section>
             <section class="agent-card">
               <h3>Both + synthesizer</h3>
               <p class="agent-role">Combined answer</p>
-              <p>When a question needs plant details and pollinator info, both RAG agents run and a synthesizer merges their answers into one response.</p>
+              <p>When a question needs plant details and pollinator info, both RAG agents run and a synthesizer merges their answers.</p>
             </section>
           </div>
         </article>
 
         <article class="presentation-slide" data-slide="2">
-          <p class="slide-eyebrow">Slide 3 of 3</p>
+          <p class="slide-eyebrow">Slide 3 of 5</p>
+          <h2>OpenAI web_search fun fact agent</h2>
+          <p class="slide-lead">
+            For trivia, this agent skips CSV data and uses OpenAI's hosted <code>web_search</code> tool — search and answer in one step.
+          </p>
+          <ol class="slide-list">
+            <li>Triggered by the router or a pollinator card click.</li>
+            <li>OpenAI Responses API runs <code>gpt-4o-mini</code> with <code>web_search</code> and returns one playful sentence.</li>
+            <li>The trace shows the web search step; replies are labeled <code>fun fact</code> in chat.</li>
+          </ol>
+        </article>
+
+        <article class="presentation-slide" data-slide="3">
+          <p class="slide-eyebrow">Slide 4 of 5</p>
           <h2>RAG datasets &amp; orchestration</h2>
           <div class="dataset-grid">
             <section class="dataset-card">
@@ -206,7 +232,32 @@
           </div>
           <div class="flow-box">
             <p><strong>Router prompt</strong> picks one route: <code>plant</code>, <code>pollinator</code>, <code>fun_fact</code>, or <code>both</code>.</p>
-            <p>Fun-fact cards bypass the router and call the fun fact agent directly.</p>
+            <p><code>plant</code> and <code>pollinator</code> use Chroma RAG; <code>fun_fact</code> uses OpenAI <code>web_search</code> instead of any vector store.</p>
+            <p>Fun-fact cards bypass the router and call the web search agent directly with <code>forced_route="fun_fact"</code>.</p>
+            <p>The orchestrator returns a <code>trace</code> list — every step from guardrail check through final answer — for the UI to display.</p>
+          </div>
+        </article>
+
+        <article class="presentation-slide" data-slide="4">
+          <p class="slide-eyebrow">Slide 5 of 5</p>
+          <h2>Guardrails &amp; traceability</h2>
+          <div class="feature-grid">
+            <section class="agent-card">
+              <h3>Scope guardrails</h3>
+              <p class="agent-role">California natives only</p>
+              <p>Before any agent runs, GPT classifies the question as <code>in_scope</code> or <code>out_of_scope</code>.</p>
+              <p>In scope: native plants, pollinators, garden use, and related fun facts. Out of scope: general trivia, coding, travel, and unrelated topics.</p>
+              <p>Blocked questions get a friendly rejection — still warm, still on-brand.</p>
+            </section>
+            <section class="agent-card">
+              <h3>Background trace</h3>
+              <p class="agent-role">See what is happening</p>
+              <p>While waiting, a spinner panel lists steps like guardrail check, routing, and data search.</p>
+              <p>When the answer arrives, expand <strong>Background steps</strong> on the message to see the full orchestrator trace — guardrail result, route chosen, Chroma CSV lookup or OpenAI <code>web_search</code>, and when the response was ready.</p>
+            </section>
+          </div>
+          <div class="flow-box">
+            <p><strong>Tone rules</strong> apply to every agent: informal and warm like a knowledgeable garden buddy, factual (no invented plant details), with gentle humor when it fits — never snarky or over-the-top.</p>
           </div>
         </article>
       </div>
@@ -217,6 +268,8 @@
           <button type="button" class="presentation-dot is-active" data-go-to="0" aria-label="Slide 1"></button>
           <button type="button" class="presentation-dot" data-go-to="1" aria-label="Slide 2"></button>
           <button type="button" class="presentation-dot" data-go-to="2" aria-label="Slide 3"></button>
+          <button type="button" class="presentation-dot" data-go-to="3" aria-label="Slide 4"></button>
+          <button type="button" class="presentation-dot" data-go-to="4" aria-label="Slide 5"></button>
         </div>
         <button type="button" id="presentation-next" class="presentation-nav">Next</button>
       </div>
@@ -229,6 +282,9 @@
     const questionInput = document.getElementById("question");
     const submitBtn = document.getElementById("submit-btn");
     const statusEl = document.getElementById("status");
+    const tracePanel = document.getElementById("trace-panel");
+    const traceList = document.getElementById("trace-list");
+    const traceTitle = document.getElementById("trace-title");
 
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -236,7 +292,7 @@
       if (parts.length === 2) return parts.pop().split(";").shift();
     }
 
-    function addMessage(role, text, route = "") {
+    function addMessage(role, text, route = "", trace = []) {
       const message = document.createElement("article");
       message.className = `message message-${role}`;
 
@@ -245,7 +301,9 @@
       if (role === "assistant" && route) {
         label.textContent = route === "fun_fact"
           ? "Assistant · fun fact"
-          : `Assistant · routed to ${route}`;
+          : route === "guardrail"
+            ? "Assistant · out of scope"
+            : `Assistant · routed to ${route}`;
       } else {
         label.textContent = role === "user" ? "You" : "Assistant";
       }
@@ -256,13 +314,57 @@
 
       message.appendChild(label);
       message.appendChild(body);
+
+      if (role === "assistant" && trace.length > 0) {
+        const details = document.createElement("details");
+        details.className = "message-trace";
+        details.open = true;
+
+        const summary = document.createElement("summary");
+        summary.textContent = "Background steps";
+
+        const list = document.createElement("ol");
+        trace.forEach((step) => {
+          const item = document.createElement("li");
+          item.textContent = step;
+          list.appendChild(item);
+        });
+
+        details.appendChild(summary);
+        details.appendChild(list);
+        message.appendChild(details);
+      }
+
       chatLog.appendChild(message);
       chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function showTraceLoading() {
+      tracePanel.hidden = false;
+      traceTitle.textContent = "Working in the background";
+      traceList.innerHTML = "";
+      [
+        "Received your question",
+        "Running guardrail check",
+        "Choosing the best expert agent",
+        "Searching data and drafting a reply",
+      ].forEach((step) => {
+        const item = document.createElement("li");
+        item.className = "trace-item trace-item-pending";
+        item.textContent = step + "...";
+        traceList.appendChild(item);
+      });
+    }
+
+    function hideTracePanel() {
+      tracePanel.hidden = true;
+      traceList.innerHTML = "";
     }
 
     async function sendQuestion(question, agent = null) {
       statusEl.textContent = agent === "fun_fact" ? "Finding a fun fact..." : "Thinking...";
       submitBtn.disabled = true;
+      showTraceLoading();
 
       const payload = { question };
       if (agent) {
@@ -285,10 +387,12 @@
           throw new Error(data.error || "Request failed.");
         }
 
-        addMessage("assistant", data.answer, data.route);
+        addMessage("assistant", data.answer, data.route, data.trace || []);
         statusEl.textContent = "";
+        hideTracePanel();
       } catch (error) {
         statusEl.textContent = error.message;
+        hideTracePanel();
       } finally {
         submitBtn.disabled = false;
       }

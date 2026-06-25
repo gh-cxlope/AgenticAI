@@ -7,37 +7,30 @@ from CaliforniaNativeLandscaper_Agent import (
     load_env,
     plant_retriever_agent,
     pollinator_expert_agent,
-    route_question,
     web_search_fun_fact_agent,
 )
 
 _llm = None
 _orchestrator = None
-_fun_fact_agent = None
 
 
 def get_agents():
-    global _llm, _orchestrator, _fun_fact_agent
+    global _llm, _orchestrator
 
     if _orchestrator is None:
         load_env()
         _llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         plant_agent = plant_retriever_agent()
         pollinator_agent = pollinator_expert_agent()
-        _fun_fact_agent = web_search_fun_fact_agent()
+        fun_fact_agent = web_search_fun_fact_agent()
         _orchestrator = agent_orchestrator(
-            plant_agent, pollinator_agent, _fun_fact_agent, _llm
+            plant_agent, pollinator_agent, fun_fact_agent, _llm
         )
 
-    return _llm, _orchestrator, _fun_fact_agent
+    return _llm, _orchestrator
 
 
-def ask_agent(question: str, agent: str | None = None) -> dict[str, str]:
-    llm, orchestrator, fun_fact_agent = get_agents()
-
-    if agent == "fun_fact":
-        return {"route": "fun_fact", "answer": fun_fact_agent(question)}
-
-    route = route_question(question, llm)
-    answer = orchestrator(question)
-    return {"route": route, "answer": answer}
+def ask_agent(question: str, agent: str | None = None) -> dict:
+    _, orchestrator = get_agents()
+    forced_route = "fun_fact" if agent == "fun_fact" else None
+    return orchestrator(question, forced_route=forced_route)

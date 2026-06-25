@@ -343,6 +343,71 @@ button[type="submit"]:disabled {
   margin-top: 0.75rem;
 }
 
+.trace-panel {
+  margin-top: 0.85rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid #d8e2d3;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fbf6 0%, #f1f6ee 100%);
+}
+
+.trace-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.65rem;
+  color: var(--accent-dark);
+}
+
+.trace-spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid #c8d6c3;
+  border-top-color: var(--accent-dark);
+  border-radius: 999px;
+  animation: traceSpin 0.8s linear infinite;
+}
+
+@keyframes traceSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.trace-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #334632;
+  line-height: 1.55;
+}
+
+.trace-item-pending {
+  opacity: 0.75;
+}
+
+.message-trace {
+  margin-top: 0.75rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed #d8e2d3;
+}
+
+.message-trace summary {
+  cursor: pointer;
+  color: var(--accent-dark);
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.message-trace ol {
+  margin: 0.55rem 0 0;
+  padding-left: 1.2rem;
+  color: #4a5d47;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
 .site-footer {
   text-align: center;
   color: var(--muted);
@@ -387,6 +452,8 @@ body.presentation-open {
 
 .presentation-dialog {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: min(920px, 100%);
   max-height: min(88vh, 760px);
   overflow: hidden;
@@ -417,7 +484,9 @@ body.presentation-open {
 
 .presentation-slides {
   position: relative;
-  min-height: 420px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 2rem 2rem 1rem;
 }
 
@@ -475,7 +544,8 @@ body.presentation-open {
 }
 
 .agent-grid,
-.dataset-grid {
+.dataset-grid,
+.feature-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem;
@@ -541,6 +611,7 @@ code {
 }
 
 .presentation-controls {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -617,11 +688,11 @@ code {
 
   .presentation-slides {
     padding: 1.5rem 1.15rem 0.75rem;
-    min-height: 460px;
   }
 
   .agent-grid,
-  .dataset-grid {
+  .dataset-grid,
+  .feature-grid {
     grid-template-columns: 1fr;
   }
 
