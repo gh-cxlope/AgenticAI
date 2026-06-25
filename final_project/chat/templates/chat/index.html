@@ -361,9 +361,13 @@
       traceList.innerHTML = "";
     }
 
+    let latestQuestionId = 0;
+
     async function sendQuestion(question, agent = null) {
+      const questionId = ++latestQuestionId;
+
       statusEl.textContent = agent === "fun_fact" ? "Finding a fun fact..." : "Thinking...";
-      submitBtn.disabled = true;
+      submitBtn.classList.add("is-loading");
       showTraceLoading();
 
       const payload = { question };
@@ -383,6 +387,10 @@
 
         const data = await response.json();
 
+        if (questionId !== latestQuestionId) {
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(data.error || "Request failed.");
         }
@@ -391,10 +399,15 @@
         statusEl.textContent = "";
         hideTracePanel();
       } catch (error) {
+        if (questionId !== latestQuestionId) {
+          return;
+        }
         statusEl.textContent = error.message;
         hideTracePanel();
       } finally {
-        submitBtn.disabled = false;
+        if (questionId === latestQuestionId) {
+          submitBtn.classList.remove("is-loading");
+        }
       }
     }
 
